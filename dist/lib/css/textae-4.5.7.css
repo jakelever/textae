@@ -18,6 +18,7 @@
   padding: 0 20px 5px 10px;
   position: relative;
   visibility: hidden;
+  white-space: normal;
   z-index: 7;
   /*== Elements inside the textae_control ==*/
 }
@@ -1884,6 +1885,7 @@ button.toast-close-button {
   position: relative;
   padding: 2px;
   border: 1px solid black;
+  white-space: pre;
   /* active editer color */
   /* entity */
   /* relation */
@@ -1912,6 +1914,7 @@ button.toast-close-button {
 }
 .textae-editor__body {
   position: relative;
+  white-space: normal;
 }
 .textae-editor__body__text-box {
   /* prefer calculated line height */
@@ -1921,6 +1924,7 @@ button.toast-close-button {
 }
 .textae-editor__body__text-box__paragraph {
   position: relative;
+  white-space: pre-wrap;
 }
 .textae-editor__body__annotation-box {
   left: 0;

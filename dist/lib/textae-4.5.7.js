@@ -32895,6 +32895,7 @@ function _upSimple(stateMachine) {
 
 function _toggleInstaceRelation(stateMachine, annotationData) {
   switch (stateMachine.currentState) {
+    case _state2['default'].TERM:
     case _state2['default'].INSTANCE:
       stateMachine.setState(_state2['default'].RELATION);
       break;

@@ -71,13 +71,29 @@ export default function(editor, emitter, paragraph) {
         }
       }
 
-      return function(span) {
-        return $.extend({},
-          span, {
-            id: idFactory.makeSpanId(editor, span),
-            paragraph: paragraph.getBelongingTo(span),
-          },
-          spanExtension)
+    return function (span) {
+      var newSpan = {};
+      if (Array.isArray(span)) {
+        newSpan.ranges = span;
+        newSpan.firstBegin = Math.min.apply(null, _.map(span, s => s.begin));
+        newSpan.lastEnd = Math.max.apply(null, _.map(span, s => s.end));
+      } else {
+        newSpan.ranges = [span];
+        newSpan.firstBegin = span.begin;
+        newSpan.lastEnd = span.end;
+      }
+
+      // TODO: Check for all of the ranges
+      newSpan.id = idFactory.makeSpanId(editor, newSpan);
+      newSpan.paragraph = paragraph.getBelongingTo(newSpan.ranges[0]);
+      newSpan.toStringOnlyThis = spanExtension.toStringOnlyThis;
+      newSpan.toString = spanExtension.toString;
+      newSpan.getTypes = spanExtension.getTypes;
+      newSpan.getEntities = spanExtension.getEntities;
+      newSpan.getAttributes = spanExtension.getAttributes;
+
+      return newSpan;
+
       }
     }(),
     mappingFunction = function(denotations) {
@@ -149,7 +165,7 @@ export default function(editor, emitter, paragraph) {
       spanTopLevel = spanTree
     },
     spanComparator = function(a, b) {
-      return a.begin - b.begin || b.end - a.end
+      return a.firstBegin - b.firstBegin || b.lastEnd - a.lastEnd
     },
     api = {
 
@@ -179,7 +195,7 @@ export default function(editor, emitter, paragraph) {
         }
 
         return spanContainer.all()
-          .filter((span) => first.begin <= span.begin && span.end <= second.end)
+          .filter((span) => first.firstBegin <= span.firstBegin && span.lastEnd <= second.lastEnd)
           .map((span) => span.id)
       },
       topLevel: function() {
@@ -215,9 +231,10 @@ function isChildOf(editor, spanContainer, span, maybeParent) {
   let id = idFactory.makeSpanId(editor, maybeParent)
   if (!spanContainer.get(id)) throw new Error('maybeParent is removed. ' + maybeParent.toStringOnlyThis())
 
-  return maybeParent.begin <= span.begin && span.end <= maybeParent.end
+  return maybeParent.firstBegin <= span.firstBegin && span.lastEnd <= maybeParent.lastEnd
 }
 
+// TODO: Get correct substring
 function toStringOnlyThis(span, emitter) {
-  return "span " + span.begin + ":" + span.end + ":" + emitter.sourceDoc.substring(span.begin, span.end)
+  return "span " + span.firstBegin + ":" + span.lastEnd + ":" + emitter.sourceDoc.substring(span.firstBegin, span.lastEnd)
 }

@@ -1,5 +1,6 @@
 import validate from './validate'
 import isBoundaryCrossingWithOtherSpans from './isBoundaryCrossingWithOtherSpans'
+import _ from 'underscore'
 
 export default function(text, paragraph, denotations) {
   const resultHasLength = validate(
@@ -42,7 +43,12 @@ export default function(text, paragraph, denotations) {
 }
 
 function hasLength(denotation) {
-  return denotation.span.end - denotation.span.begin > 0
+  if (Array.isArray(denotation.span)) {
+    return _.every(denotation.span, function (span) { return span.end - span.begin > 0 });
+  }
+  else {
+    return denotation.span.end - denotation.span.begin > 0;
+  }
 }
 
 function isInText(boundary, text) {
@@ -50,12 +56,19 @@ function isInText(boundary, text) {
 }
 
 function isBeginAndEndIn(denotation, text) {
-  return isInText(denotation.span.begin, text) &&
-    isInText(denotation.span.end, text)
+  if (Array.isArray(denotation.span)) {
+    return _.every(denotation.span, function (span) { return isInText(span.begin, text) && isInText(span.end, text) });
+  }
+  else {
+    return isInText(denotation.span.begin, text) &&
+      isInText(denotation.span.end, text);
+  }
 }
 
 function isInParagraph(denotation, paragraph) {
-  return paragraph.all()
-    .filter(p => p.begin <= denotation.span.begin && denotation.span.end <= p.end)
-    .length === 1
+  // TODO: Figure out the logic for this!
+  return true;
+  //paragraph.all()
+  //  .filter(p => p.begin <= denotation.span.begin && denotation.span.end <= p.end)
+  //  .length === 1
 }

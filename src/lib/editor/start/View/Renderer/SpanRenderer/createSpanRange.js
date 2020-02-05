@@ -11,8 +11,8 @@ export default function(textNode, startOfTextNode, span) {
 }
 
 function getOffset(span, startOfTextNode) {
-  let startOffset = span.begin - startOfTextNode,
-    endOffset = span.end - startOfTextNode
+  let startOffset = span.firstBegin - startOfTextNode,
+    endOffset = span.lastEnd - startOfTextNode
 
   return {
     start: startOffset,

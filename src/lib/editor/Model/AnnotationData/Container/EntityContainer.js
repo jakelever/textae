@@ -3,10 +3,21 @@ import ModelContainer from './ModelContainer'
 import _ from 'underscore'
 
 // Expected an entity like {id: "E21", span: "editor2__S50_54", type: "Protein"}.
-var toModel = function(editor, entity) {
+var toModel = function (editor, entity) {
+  var newSpan = {};
+  if (Array.isArray(entity.span)) {
+    newSpan.ranges = entity.span;
+    newSpan.firstBegin = Math.min.apply(null, _.map(entity.span, s => s.begin));
+    newSpan.lastEnd = Math.max.apply(null, _.map(entity.span, s => s.end));
+  } else {
+    newSpan.ranges = [entity.span];
+    newSpan.firstBegin = entity.span.begin;
+    newSpan.lastEnd = entity.span.end;
+  }
+
     return {
       id: entity.id,
-      span: idFactory.makeSpanId(editor, entity.span),
+      span: idFactory.makeSpanId(editor, newSpan),
       type: entity.obj,
     }
   },

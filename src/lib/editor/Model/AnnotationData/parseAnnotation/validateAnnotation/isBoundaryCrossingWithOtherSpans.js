@@ -7,12 +7,12 @@ export default function(spans, candidateSpan) {
 }
 
 function isBoundaryCrossing(candidateSpan, existSpan) {
-  let isStartOfCandidateSpanBetweenExistsSpan = existSpan.begin < candidateSpan.begin &&
-    candidateSpan.begin < existSpan.end &&
-    existSpan.end < candidateSpan.end,
-    isEndOfCandidateSpanBetweenExistSpan = candidateSpan.begin < existSpan.begin &&
-    existSpan.begin < candidateSpan.end &&
-    candidateSpan.end < existSpan.end
+  let isStartOfCandidateSpanBetweenExistsSpan = existSpan.firstBegin < candidateSpan.firstBegin &&
+    candidateSpan.firstBegin < existSpan.lastEnd &&
+    existSpan.lastEnd < candidateSpan.lastEnd,
+    isEndOfCandidateSpanBetweenExistSpan = candidateSpan.firstBegin < existSpan.firstBegin &&
+      existSpan.firstBegin < candidateSpan.lastEnd &&
+      candidateSpan.lastEnd < existSpan.lastEnd
 
 
   return isStartOfCandidateSpanBetweenExistsSpan || isEndOfCandidateSpanBetweenExistSpan

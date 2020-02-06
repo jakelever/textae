@@ -15,7 +15,16 @@ export default function(span, bigBrother) {
   [endNode, offsetInsideEndNode] = getNodeFromOffset(baseNode, span.lastEnd)
   targetRange.setEnd(endNode, offsetInsideEndNode)*/
 
-  var targetRange = anotherCreateRange(baseNode, span.firstBegin, span.lastEnd)
+  var rangeStart = span.firstBegin - span.paragraph.begin;
+  var rangeEnd = span.lastEnd - span.paragraph.begin;
+
+  if (rangeStart < 0 || rangeStart > span.paragraph.text.length) {
+    throw new Error('Trying to create a span that is outside the provided paragraph')
+  } else if (rangeEnd < 0 || rangeEnd > span.paragraph.text.length) {
+    throw new Error('Trying to create a span that is outside the provided paragraph')
+  } 
+
+  var targetRange = anotherCreateRange(baseNode, rangeStart, rangeEnd)
 
     //let targetRange = cerateRangeToSpan(span, bigBrother)
  

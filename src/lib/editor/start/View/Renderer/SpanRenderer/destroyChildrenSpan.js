@@ -19,5 +19,5 @@ function destroySpanRecurcive(span) {
         .forEach(function(span) {
           destroySpanRecurcive(span)
         })
-  destroy(span.id)
+  destroy(span)
 }

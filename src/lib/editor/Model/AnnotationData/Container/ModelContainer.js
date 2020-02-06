@@ -76,8 +76,8 @@ module.exports = function(emitter, prefix, mappingFunction, idPrefix) {
     remove: function(id) {
       var model = contaier[id]
       if (model) {
-        delete contaier[id]
         emitter.emit(prefix + '.remove', model)
+        delete contaier[id]
       }
       return model
     },

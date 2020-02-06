@@ -4,10 +4,11 @@ import {
 from '../../../../../Model/AnnotationData/parseAnnotation/validateAnnotation'
 import isAlreadySpaned from '../../../../isAlreadySpaned'
 import * as selectPosition from '../selectPosition'
+import spanRemoveCommand from '../../../../Command/Factory/spanRemoveCommand'
 
 const BLOCK_THRESHOLD = 100
 
-export default function (annotationData, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan, selection, spanConfig) {
+export default function (editor, annotationData, selectionModel, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan, selection, spanConfig) {
   const newSpan = getNewSpan(annotationData, spanAdjuster, selection, spanConfig)
   
   // The span cross exists spans.
@@ -23,16 +24,24 @@ export default function (annotationData, command, typeContainer, spanAdjuster, i
     return
   }
 
-  const commands = createCommands(command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig)
+  const commands = createCommands(editor, annotationData, selectionModel, command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig)
 
   command.invoke(commands, ['annotation'])
 }
 
-function createCommands(command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig) {
+function createCommands(editor, annotationData, selectionModel, command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig) {
+  var previouslySelected = selectionModel.span.all()
+  if (previouslySelected.length > 0)
+    previouslySelected = previouslySelected[0]
+  else
+    previouslySelected = null
+
   var commands = []
 
-  if (isAddSubspan) {
-
+  if (isAddSubspan && previouslySelected) {
+    var span_id = previouslySelected.split('_').slice(0, 4).join('_')
+    var subspan_id = span_id + '_s0'
+    commands = [spanRemoveCommand(editor, annotationData, selectionModel, subspan_id)]
   } else {
     commands = [command.factory.spanCreateCommand(
       typeContainer.entity.getDefaultType(), newSpan

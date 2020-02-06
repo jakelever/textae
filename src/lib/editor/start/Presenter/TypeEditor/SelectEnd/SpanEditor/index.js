@@ -9,8 +9,14 @@ export default function (editor, annotationData, selectionModel, command, typeCo
 
   return {
     create: (data) => {
-      selectionModel.clear()
-      create(annotationData, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan, data.selection, data.spanConfig)
+
+      // We only deselect the current selection if we're not adding subspans
+      // In that case, we need to know the current selection (to know which)
+      // span to add a subspan too.
+      if (!(isAddSubspan && selectionModel.span.all()))
+        selectionModel.clear()  
+      create(editor, annotationData, selectionModel, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan, data.selection, data.spanConfig)
+      
     },
     expand: (data) => expand(editor, annotationData, selectionModel, command, spanAdjuster, data.selection, data.spanConfig),
     shrinkCrossTheEar: (data) => shrink.crossTheEar(editor, annotationData, selectionModel, command, spanAdjuster, data.selection, data.spanConfig),

@@ -3,6 +3,7 @@ import DomPositionCache from '../View/DomPositionCache'
 import selectRelation from './selectRelation'
 import deselectRelation from './deselectRelation'
 import getEntityDom from '../getEntityDom'
+import _ from 'underscore'
 
 const SELECTED = 'ui-selected'
 
@@ -11,20 +12,28 @@ export default function(editor, annotationData) {
 
   return {
     span: {
-      select: (id) => {
-        let el = getSpanDom(id)
-        modifyStyle(el, 'add')
+      select: (subspan_id) => {
+        var span_id = subspan_id.split('_').slice(0, 4).join('_')
+        var span = annotationData.span.get(span_id)
 
+        _.map(span.ranges, function (r, i) {
+          let el = getSpanDom(span_id + '_s' + i)
+          modifyStyle(el, 'add')
+        })
+
+        let el = getSpanDom(subspan_id)
         // Set focus to the span element in order to scroll the browser to the position of the element.
         el.focus()
       },
-      deselect: (id) => {
-        let el = getSpanDom(id)
+      deselect: (subspan_id) => {
+        var span_id = subspan_id.split('_').slice(0, 4).join('_')
+        var span = annotationData.span.get(span_id)
 
-        // A dom does not exist when it is deleted.
-        if (el) {
-          modifyStyle(el, 'remove')
-        }
+        _.map(span.ranges, function (r, i) {
+          let el = getSpanDom(span_id + '_s' + i)
+          if (el)
+            modifyStyle(el, 'remove')
+        })
       }
     },
     entity: {

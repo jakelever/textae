@@ -17,7 +17,7 @@ export default function(dataStore, originSpan, detectBoundaryFunc) {
     .filter(span =>
       // The candidateSpan is a same span when begin is same.
       // Because string of each others are same. End of them are same too.
-      span.begin !== originSpan.begin
+      span.firstBegin !== originSpan.firstBegin
     )
     .filter(wordFilter)
     .filter(
@@ -34,21 +34,27 @@ export default function(dataStore, originSpan, detectBoundaryFunc) {
 
 // Get spans their stirng is same with the originSpan from sourceDoc.
 function getSpansTheirStringIsSameWith(sourceDoc, originSpan) {
-  let getNextStringIndex = String.prototype.indexOf.bind(
+  let findStrings = []
+
+  // Replication only works on spans with a single subspan.
+  // So no non - contigious entities can be replicated!
+  if (originSpan.ranges.length == 1) {
+    let getNextStringIndex = String.prototype.indexOf.bind(
       sourceDoc,
-      sourceDoc.substring(originSpan.begin, originSpan.end)
+      sourceDoc.substring(originSpan.firstBegin, originSpan.lastEnd)
     ),
-    length = originSpan.end - originSpan.begin,
-    findStrings = [],
-    offset = 0
+      length = originSpan.lastEnd - originSpan.firstBegin,
+      offset = 0
 
-  for (let index = getNextStringIndex(offset); index !== -1; index = getNextStringIndex(offset)) {
-    findStrings.push({
-      begin: index,
-      end: index + length
-    })
+    for (let index = getNextStringIndex(offset); index !== -1; index = getNextStringIndex(offset)) {
+      findStrings.push({
+        firstBegin: index,
+        lastEnd: index + length,
+        ranges: [{ begin: index, end: index + length}]
+      })
 
-    offset = index + length
+      offset = index + length
+    }
   }
 
   return findStrings
@@ -57,8 +63,8 @@ function getSpansTheirStringIsSameWith(sourceDoc, originSpan) {
 // The preceding charactor and the following of a word charactor are delimiter.
 // For example, 't' ,a part of 'that', is not same with an origin span when it is 't'.
 function isWord(sourceDoc, detectBoundaryFunc, candidateSpan) {
-  let precedingChar = sourceDoc.charAt(candidateSpan.begin - 1),
-    followingChar = sourceDoc.charAt(candidateSpan.end)
+  let precedingChar = sourceDoc.charAt(candidateSpan.firstBegin - 1),
+    followingChar = sourceDoc.charAt(candidateSpan.lastEnd)
 
   return detectBoundaryFunc(precedingChar) && detectBoundaryFunc(followingChar)
 }

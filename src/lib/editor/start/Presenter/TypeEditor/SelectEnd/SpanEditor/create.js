@@ -5,6 +5,7 @@ from '../../../../../Model/AnnotationData/parseAnnotation/validateAnnotation'
 import isAlreadySpaned from '../../../../isAlreadySpaned'
 import * as selectPosition from '../selectPosition'
 import spanRemoveCommand from '../../../../Command/Factory/spanRemoveCommand'
+import _ from 'underscore'
 
 const BLOCK_THRESHOLD = 100
 
@@ -41,7 +42,16 @@ function createCommands(editor, annotationData, selectionModel, command, typeCon
   if (isAddSubspan && previouslySelected) {
     var span_id = previouslySelected.split('_').slice(0, 4).join('_')
     var subspan_id = span_id + '_s0'
-    commands = [spanRemoveCommand(editor, annotationData, selectionModel, subspan_id)]
+    var oldSpan = annotationData.span.get(span_id)
+
+    var mergedSpan = { ranges: oldSpan.ranges.concat(newSpan.ranges) }
+    mergedSpan.firstBegin = Math.min.apply(null, _.map(mergedSpan.ranges, s => s.begin));
+    mergedSpan.lastEnd = Math.max.apply(null, _.map(mergedSpan.ranges, s => s.end));
+
+    commands = [spanRemoveCommand(editor, annotationData, selectionModel, subspan_id),
+      command.factory.spanCreateCommand(
+        typeContainer.entity.getDefaultType(), mergedSpan
+      )]
   } else {
     commands = [command.factory.spanCreateCommand(
       typeContainer.entity.getDefaultType(), newSpan

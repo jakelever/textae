@@ -1,4 +1,3 @@
-import getBigBrother from './getBigBrother'
 import renderSingleSpan from './renderSingleSpan'
 import renderClassOfSpan from './renderClassOfSpan'
 import renderEntitiesOfSpan from './renderEntitiesOfSpan'
@@ -11,8 +10,7 @@ export default create
 function create(span, annotationData, isBlockFunc, renderEntityFunc, renderAttributeFunc) {
   destroyChildrenSpan(span)
 
-  let bigBrother = getBigBrother(span, annotationData.span.topLevel())
-  renderSingleSpan(span, bigBrother)
+  renderSingleSpan(span)
 
   renderClassOfSpan(
       span,

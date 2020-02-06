@@ -13,7 +13,8 @@ const buttonList = [
   'boundary-detection',
   'negation',
   'replicate-auto',
-  'speculation'
+  'speculation',
+  'add-subspan'
 ]
 
 export default function() {

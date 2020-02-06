@@ -46,16 +46,24 @@
             "title": "Boundary Detection [B]"
         }]
     }, {
-        "list": [{
-            "type": "entity",
-            "title": "New entity [E]"
-        }, {
-            "type": "pallet",
-            "title": "Show label list editor [Q]"
-        }, {
-            "type": "change-label",
-            "title": "Change label [W]"
-        }]
+      "list": [
+        {
+          "type": "entity",
+          "title": "New entity [E]"
+        },
+        {
+          "type": "pallet",
+          "title": "Show label list editor [Q]"
+        },
+        {
+          "type": "change-label",
+          "title": "Change label [W]"
+        },
+        {
+          "type": "add-subspan",
+          "title": "Add subspan [J]"
+        }
+      ]
     }, {
         "list": [{
             "type": "negation",

@@ -10,7 +10,8 @@ export default function(editor, annotationData, selectionModel, command, modeAcc
   const changeSpanEditorAccordingToButtons = function() {
     const isDetectDelimiterEnable = modeAccordingToButton['boundary-detection'].value(),
       isReplicateAuto = modeAccordingToButton['replicate-auto'].value(),
-      spanEditor = new SpanEditor(editor, annotationData, selectionModel, command, typeContainer, isDetectDelimiterEnable, isReplicateAuto)
+      isAddSubspan = modeAccordingToButton['add-subspan'].value(),
+      spanEditor = new SpanEditor(editor, annotationData, selectionModel, command, typeContainer, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan)
 
     selectEndOnTextImpl = (annotationData, data) => selectEndOnText(spanEditor, annotationData, data)
     selectEndOnSpanImpl = (annotationData, data) => selectEndOnSpan(spanEditor, annotationData, data)
@@ -23,6 +24,9 @@ export default function(editor, annotationData, selectionModel, command, modeAcc
     .on('change', changeSpanEditorAccordingToButtons)
 
   modeAccordingToButton['replicate-auto']
+    .on('change', changeSpanEditorAccordingToButtons)
+
+  modeAccordingToButton['add-subspan']
     .on('change', changeSpanEditorAccordingToButtons)
 
   return {

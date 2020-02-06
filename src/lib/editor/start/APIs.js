@@ -84,6 +84,7 @@ function IconApiMap(
       ['textae.control.button.replicate.click', presenter.event.replicate],
       ['textae.control.button.replicate_auto.click', buttonController.modeAccordingToButton['replicate-auto'].toggle],
       ['textae.control.button.boundary_detection.click', presenter.event.toggleDetectBoundaryMode],
+      ['textae.control.button.add_subspan.click', buttonController.modeAccordingToButton['add-subspan'].toggle],
       ['textae.control.button.entity.click', presenter.event.createEntity],
       ['textae.control.button.change_label.click', presenter.event.changeLabel],
       ['textae.control.button.pallet.click', presenter.event.showPallet],

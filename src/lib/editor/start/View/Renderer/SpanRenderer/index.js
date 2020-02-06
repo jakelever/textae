@@ -11,7 +11,7 @@ export default function(annotationData, isBlockFunc, renderEntityFunc, renderAtt
         renderEntityFunc,
         renderAttributeFunc
     ),
-    remove: span => destroy(span.id),
+    remove: span => destroy(span),
     change: span => renderClassOfSpan(span, isBlockFunc)
   }
 }

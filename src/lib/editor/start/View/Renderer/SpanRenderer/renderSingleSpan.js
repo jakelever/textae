@@ -3,17 +3,40 @@ import createSpanRange from './createSpanRange'
 import _ from 'underscore'
 
 export default function(span, bigBrother) {
-  let targetRange = cerateRangeToSpan(span, bigBrother),
-    spanElement = createSpanElement(span)
 
+  var baseNode = document.querySelector('#' + span.paragraph.id)
+
+  /*var targetRange = document.createRange()
+  var startNode, offsetInsideStartNode
+  [startNode, offsetInsideStartNode] = getNodeFromOffset(baseNode, span.firstBegin)
+  targetRange.setStart(startNode, offsetInsideStartNode)
+
+  var endNode, offsetInsideEndNode
+  [endNode, offsetInsideEndNode] = getNodeFromOffset(baseNode, span.lastEnd)
+  targetRange.setEnd(endNode, offsetInsideEndNode)*/
+
+  var targetRange = anotherCreateRange(baseNode, span.firstBegin, span.lastEnd)
+
+    //let targetRange = cerateRangeToSpan(span, bigBrother)
+ 
+  var spanElement = createSpanElement(span)
 
   targetRange.surroundContents(spanElement)
 
-  _.each(span.ranges, function (r,i) {
-    let range = document.createRange()
-    let offset = span.lastEnd - spanElement.lastChild.length
-    range.setStart(spanElement.lastChild, r.begin - offset)
-    range.setEnd(spanElement.lastChild, r.end - offset)
+  _.each(span.ranges, function (r, i) {
+    //let range = document.createRange()
+    let offset = span.lastEnd - spanElement.textContent.length
+
+    /*var startNode, offsetInsideStartNode
+    [startNode, offsetInsideStartNode] = getNodeFromOffset(spanElement, r.begin - offset)
+    range.setStart(startNode, offsetInsideStartNode)
+
+    var endNode, offsetInsideEndNode
+    [endNode, offsetInsideEndNode] = getNodeFromOffset(spanElement, r.end - offset)
+    range.setEnd(endNode, offsetInsideEndNode)*/
+
+
+    var range = anotherCreateRange(spanElement, r.begin - offset, r.end - offset)
 
     let element = document.createElement('span')
     element.setAttribute('id', span.id + '_s' + i)
@@ -23,6 +46,101 @@ export default function(span, bigBrother) {
 
     range.surroundContents(element)
   })
+
+  
+}
+
+function anotherCreateRange(baseNode, begin, end) {
+  var startNode, offsetInsideStartNode
+  [startNode, offsetInsideStartNode] = getNodeFromOffset(baseNode, begin)
+
+  var endNode, offsetInsideEndNode
+  [endNode, offsetInsideEndNode] = getNodeFromOffset(baseNode, end)
+
+  var beforeStart = (offsetInsideStartNode == 0)
+  var afterEnd = (offsetInsideEndNode == endNode.length)
+
+  //var commonAncestor = findFirstCommonAncestor(startNode, endNode)
+  var startAncestors = getAncestors(startNode).slice(1)
+  var endAncestors = getAncestors(endNode).slice(1)
+
+  var commonAncestor = _.intersection(startAncestors,endAncestors)[0]
+
+  var commonAncestor_startChild = startAncestors[startAncestors.indexOf(commonAncestor) - 1]
+  var commonAncestor_endChild = endAncestors[endAncestors.indexOf(commonAncestor) - 1]
+
+  if (!commonAncestor_startChild)
+    commonAncestor_startChild = startNode
+  if (!commonAncestor_endChild)
+    commonAncestor_endChild = endNode
+
+  let range = document.createRange()
+  if (beforeStart & afterEnd) {
+    range.setStartBefore(commonAncestor_startChild)
+    range.setEndAfter(commonAncestor_endChild)
+  } else if (beforeStart) {
+    range.setStartBefore(commonAncestor_startChild)
+    if (endNode.parentNode != commonAncestor) {
+      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
+    }
+    range.setEnd(endNode, offsetInsideEndNode)
+  } else if (afterEnd) {
+    if (startNode.parentNode != commonAncestor) {
+      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
+    }
+    range.setStart(startNode, offsetInsideStartNode)
+    range.setEndAfter(commonAncestor_endChild)
+  } else {
+    if (startNode.parentNode != commonAncestor) {
+      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
+    }
+    if (endNode.parentNode != commonAncestor) {
+      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
+    }
+    range.setStart(startNode, offsetInsideStartNode)
+    range.setEnd(endNode, offsetInsideEndNode)
+  }
+
+  //range.setStart(startNode, offsetInsideStartNode)
+  //range.setEnd(endNode, offsetInsideEndNode)
+
+  return range
+}
+
+
+
+function getNodeFromOffset(startNode, offset) {
+  var curNode = startNode
+  var found = false
+
+  while (!found) {
+    if (curNode.nodeType == curNode.TEXT_NODE) {
+      if (offset <= curNode.length) {
+        found = true
+        break
+      } else {
+        offset -= curNode.length
+      }
+    }
+
+    // Children
+    if (curNode.firstChild)
+      curNode = curNode.firstChild
+    // Siblings and uncles, etc
+    else if (curNode.nextSibling)
+      curNode = curNode.nextSibling
+    else if (curNode.parentNode.nextSibling)
+      curNode = curNode.parentNode.nextSibling
+    else if (curNode.parentNode.parentNode.nextSibling)
+      curNode = curNode.parentNode.parentNode.nextSibling
+    else if (curNode.parentNode.parentNode.parentNode.nextSibling)
+      curNode = curNode.parentNode.parentNode.parentNode.nextSibling
+    else if (curNode.parentNode.parentNode.parentNode.parentNode.nextSibling)
+      curNode = curNode.parentNode.parentNode.parentNode.parentNode.nextSibling
+
+  }
+
+  return [curNode,offset]
 }
 
 // Get the Range to that new span tag insert.
@@ -79,4 +197,31 @@ function getParentModel(span) {
     // The parentElement is paragraph unless parent.
     return span.paragraph
   }
+}
+
+
+
+
+// From: https://stackoverflow.com/questions/2453742/whats-the-best-way-to-find-the-first-common-parent-of-two-dom-nodes-in-javascri/2453832#2453832
+
+function findFirstCommonAncestor(nodeA, nodeB, ancestorsB) {
+  var ancestorsB = ancestorsB || getAncestors(nodeB);
+  if (ancestorsB.length == 0) return null;
+  else if (ancestorsB.indexOf(nodeA) > -1) return nodeA;
+  else if (nodeA == document) return null;
+  else return findFirstCommonAncestor(nodeA.parentNode, nodeB, ancestorsB);
+}
+
+function getAncestors(node) {
+  if (node != document) return [node].concat(getAncestors(node.parentNode));
+  else return [node];
+}
+
+if (Array.prototype.indexOf === undefined) {
+  Array.prototype.indexOf = function (element) {
+    for (var i = 0, l = this.length; i < l; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  };
 }

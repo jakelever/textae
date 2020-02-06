@@ -8,7 +8,18 @@ import * as selectPosition from '../selectPosition'
 const BLOCK_THRESHOLD = 100
 
 export default function(annotationData, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, selection, spanConfig) {
-  const newSpan = getNewSpan(annotationData, spanAdjuster, selection, spanConfig)
+  const span = getNewSpan(annotationData, spanAdjuster, selection, spanConfig)
+
+  var newSpan = {};
+  if (Array.isArray(span)) {
+    newSpan.ranges = span;
+    newSpan.firstBegin = Math.min.apply(null, _.map(span, s => s.begin));
+    newSpan.lastEnd = Math.max.apply(null, _.map(span, s => s.end));
+  } else {
+    newSpan.ranges = [span];
+    newSpan.firstBegin = span.begin;
+    newSpan.lastEnd = span.end;
+  }
 
   // The span cross exists spans.
   if (isBoundaryCrossingWithOtherSpans(
@@ -30,18 +41,12 @@ export default function(annotationData, command, typeContainer, spanAdjuster, is
 
 function createCommands(command, typeContainer, newSpan, isReplicateAuto, isDetectDelimiterEnable, spanConfig) {
   const commands = [command.factory.spanCreateCommand(
-    typeContainer.entity.getDefaultType(), {
-      begin: newSpan.begin,
-      end: newSpan.end
-    }
+    typeContainer.entity.getDefaultType(), newSpan
   )]
 
-  if (isReplicateAuto && newSpan.end - newSpan.begin <= BLOCK_THRESHOLD) {
+  if (isReplicateAuto && newSpan.lastEnd - newSpan.firstBegin <= BLOCK_THRESHOLD) {
     commands.push(
-      command.factory.spanReplicateCommand({
-          begin: newSpan.begin,
-          end: newSpan.end
-        }, [typeContainer.entity.getDefaultType()],
+      command.factory.spanReplicateCommand(newSpan, [typeContainer.entity.getDefaultType()],
         isDetectDelimiterEnable ? spanConfig.isDelimiter : null
       )
     )

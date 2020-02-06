@@ -73,7 +73,9 @@ export default function(editor, emitter, paragraph) {
 
     return function (span) {
       var newSpan = {};
-      if (Array.isArray(span)) {
+      if (_.has(span,"firstBegin")) {
+        newSpan = span
+      } else if (Array.isArray(span)) {
         newSpan.ranges = span;
         newSpan.firstBegin = Math.min.apply(null, _.map(span, s => s.begin));
         newSpan.lastEnd = Math.max.apply(null, _.map(span, s => s.end));
@@ -83,9 +85,9 @@ export default function(editor, emitter, paragraph) {
         newSpan.lastEnd = span.end;
       }
 
-      // TODO: Check for all of the ranges
       newSpan.id = idFactory.makeSpanId(editor, newSpan);
-      newSpan.paragraph = paragraph.getBelongingTo(newSpan.ranges[0]);
+      // TODO: Check for all of the ranges
+      newSpan.paragraph = paragraph.getBelongingTo(newSpan);
       newSpan.toStringOnlyThis = spanExtension.toStringOnlyThis;
       newSpan.toString = spanExtension.toString;
       newSpan.getTypes = spanExtension.getTypes;
@@ -93,8 +95,7 @@ export default function(editor, emitter, paragraph) {
       newSpan.getAttributes = spanExtension.getAttributes;
 
       return newSpan;
-
-      }
+    }
     }(),
     mappingFunction = function(denotations) {
       denotations = denotations || []

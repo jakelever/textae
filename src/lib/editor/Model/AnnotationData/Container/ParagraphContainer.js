@@ -27,7 +27,7 @@ module.exports = function(editor, emitter) {
     api = _.extend(contaier, {
       // get the paragraph that span is belong to.
       getBelongingTo: function (span) {
-        var match;
+        /*var match;
         if (Array.isArray(span)) {
           match = contaier.all().filter(function (p) {
             return span[0].begin >= p.begin && span[0].end <= p.end
@@ -36,7 +36,10 @@ module.exports = function(editor, emitter) {
           match = contaier.all().filter(function (p) {
             return span.begin >= p.begin && span.end <= p.end
           })
-        }
+        }*/
+        var match = contaier.all().filter(function (p) {
+          return span.firstBegin >= p.begin && span.lastEnd <= p.end
+        })
 
         if (match.length === 0) {
           throw new Error('span should belong to any paragraph.')

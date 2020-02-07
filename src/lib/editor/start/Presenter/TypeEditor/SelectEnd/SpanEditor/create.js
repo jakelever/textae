@@ -41,17 +41,20 @@ function createCommands(editor, annotationData, selectionModel, command, typeCon
 
   if (isAddSubspan && previouslySelected) {
     var span_id = previouslySelected.split('_').slice(0, 4).join('_')
-    var subspan_id = span_id + '_s0'
+    /*var subspan_id = span_id + '_s0'
     var oldSpan = annotationData.span.get(span_id)
 
     var mergedSpan = { ranges: oldSpan.ranges.concat(newSpan.ranges) }
     mergedSpan.firstBegin = Math.min.apply(null, _.map(mergedSpan.ranges, s => s.begin));
     mergedSpan.lastEnd = Math.max.apply(null, _.map(mergedSpan.ranges, s => s.end));
 
-    commands = [spanRemoveCommand(editor, annotationData, selectionModel, subspan_id),
+    var entityType = oldSpan.getTypes()[0].name*/
+
+    /*commands = [spanRemoveCommand(editor, annotationData, selectionModel, subspan_id),
       command.factory.spanCreateCommand(
-        typeContainer.entity.getDefaultType(), mergedSpan
-      )]
+        entityType, mergedSpan
+      )]*/
+    commands = [command.factory.subspanAddCommand(span_id,newSpan)]
   } else {
     commands = [command.factory.spanCreateCommand(
       typeContainer.entity.getDefaultType(), newSpan

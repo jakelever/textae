@@ -8,6 +8,7 @@ import spanAndTypesCreateCommand from './spanAndTypesCreateCommand'
 import spanReplicateCommand from './spanReplicateCommand'
 import spanRemoveCommand from './spanRemoveCommand'
 import spanMoveCommand from './spanMoveCommand'
+import subspanAddCommand from './subspanAddCommand'
 import entityChangeTypeRemoveRelationCommand from './entityChangeTypeRemoveRelationCommand'
 import entityRemoveAndSpanRemeveIfNoEntityRestCommand from './entityRemoveAndSpanRemeveIfNoEntityRestCommand'
 import relationAndAssociatesRemoveCommand from './relationAndAssociatesRemoveCommand'
@@ -25,6 +26,7 @@ export default function Factory(editor, annotationData, selectionModel) {
       spanRemoveCommand: (id) => spanRemoveCommand(editor, annotationData, selectionModel, id),
       spanMoveCommand: (spanId, newSpan) => spanMoveCommand(editor, annotationData, selectionModel, spanId, newSpan),
       spanReplicateCommand: (span, types, detectBoundaryFunc) => spanReplicateCommand(editor, annotationData, selectionModel, span, types, detectBoundaryFunc),
+      subspanAddCommand: (spanId, newSpan) => subspanAddCommand(editor, annotationData, selectionModel, spanId, newSpan),
       entityCreateCommand: (entity) => new CreateCommand(editor, annotationData, selectionModel, 'entity', true, entity),
       entityRemoveCommand: (ids) => entityRemoveAndSpanRemeveIfNoEntityRestCommand(editor, annotationData, selectionModel, ids),
       entityChangeTypeCommand: (id, newType, isRemoveRelations) => entityChangeTypeRemoveRelationCommand(editor, annotationData, selectionModel, id, newType, isRemoveRelations),

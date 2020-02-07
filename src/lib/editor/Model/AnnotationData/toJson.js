@@ -14,13 +14,19 @@ function toDenotation(dataStore) {
     .map((entity) => {
       const currentSpan = dataStore.span.get(entity.span)
 
-      return {
-        id: entity.id,
-        span: {
-          begin: currentSpan.begin,
-          end: currentSpan.end
-        },
-        obj: entity.type
+      if (currentSpan.ranges.length == 1) {
+
+        return {
+          id: entity.id,
+          span: currentSpan.ranges[0],
+          obj: entity.type
+        }
+      } else {
+        return {
+          id: entity.id,
+          span: currentSpan.ranges,
+          obj: entity.type
+        }
       }
     })
 }

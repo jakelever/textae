@@ -9,7 +9,7 @@ import _ from 'underscore'
 
 const BLOCK_THRESHOLD = 100
 
-export default function (editor, annotationData, selectionModel, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan, selection, spanConfig) {
+export default function (editor, annotationData, command, typeContainer, spanAdjuster, isDetectDelimiterEnable, isReplicateAuto, isAddSubspan, selection, spanConfig, previouslySelectedSpanId) {
   const newSpan = getNewSpan(annotationData, spanAdjuster, selection, spanConfig)
   
   // The span cross exists spans.
@@ -25,22 +25,16 @@ export default function (editor, annotationData, selectionModel, command, typeCo
     return
   }
 
-  const commands = createCommands(editor, annotationData, selectionModel, command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig)
+  const commands = createCommands(editor, annotationData, command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig, previouslySelectedSpanId)
 
   command.invoke(commands, ['annotation'])
 }
 
-function createCommands(editor, annotationData, selectionModel, command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig) {
-  var previouslySelected = selectionModel.span.all()
-  if (previouslySelected.length > 0)
-    previouslySelected = previouslySelected[0]
-  else
-    previouslySelected = null
-
+function createCommands(editor, annotationData, command, typeContainer, newSpan, isReplicateAuto, isAddSubspan, isDetectDelimiterEnable, spanConfig, previouslySelectedSpanId) {
   var commands = []
 
-  if (isAddSubspan && previouslySelected) {
-    var span_id = previouslySelected.split('_').slice(0, 4).join('_')
+  if (isAddSubspan && previouslySelectedSpanId) {
+    //var span_id = previouslySelected.split('_').slice(0, 4).join('_')
     /*var subspan_id = span_id + '_s0'
     var oldSpan = annotationData.span.get(span_id)
 
@@ -54,7 +48,7 @@ function createCommands(editor, annotationData, selectionModel, command, typeCon
       command.factory.spanCreateCommand(
         entityType, mergedSpan
       )]*/
-    commands = [command.factory.subspanAddCommand(span_id,newSpan)]
+    commands = [command.factory.subspanAddCommand(previouslySelectedSpanId,newSpan)]
   } else {
     commands = [command.factory.spanCreateCommand(
       typeContainer.entity.getDefaultType(), newSpan

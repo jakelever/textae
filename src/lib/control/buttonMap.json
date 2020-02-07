@@ -35,16 +35,24 @@
             "title": "Redo [A]"
         }]
     }, {
-        "list": [{
-            "type": "replicate",
-            "title": "Replicate span annotation [R]"
-        }, {
-            "type": "replicate-auto",
-            "title": "Auto replicate"
-        }, {
-            "type": "boundary-detection",
-            "title": "Boundary Detection [B]"
-        }]
+      "list": [
+        {
+          "type": "replicate",
+          "title": "Replicate span annotation [R]"
+        },
+        {
+          "type": "replicate-auto",
+          "title": "Auto replicate"
+        },
+        {
+          "type": "boundary-detection",
+          "title": "Boundary Detection [B]"
+        },
+        {
+          "type": "add-subspan",
+          "title": "Add subspan [J]"
+        }
+      ]
     }, {
       "list": [
         {
@@ -58,10 +66,6 @@
         {
           "type": "change-label",
           "title": "Change label [W]"
-        },
-        {
-          "type": "add-subspan",
-          "title": "Add subspan [J]"
         }
       ]
     }, {

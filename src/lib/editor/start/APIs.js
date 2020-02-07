@@ -6,7 +6,7 @@ export default function(
   view,
   updateLineHeight
 ) {
-  const keyApiMap = new KeyApiMap(command, presenter, daoHandler),
+  const keyApiMap = new KeyApiMap(command, presenter, daoHandler, buttonController),
     iconApiMap = new IconApiMap(command, presenter, daoHandler, buttonController, updateLineHeight),
     popupApiMap = new PopupApiMap(command, presenter, daoHandler),
     palletApiMap = new PalletApiMap(command, presenter, daoHandler)
@@ -36,7 +36,7 @@ function handle(map, key, value) {
 }
 
 
-function KeyApiMap(command, presenter, daoHandler) {
+function KeyApiMap(command, presenter, daoHandler, buttonController) {
   return new Map([
     ['A', command.redo],
     ['B', presenter.event.toggleDetectBoundaryMode],
@@ -46,6 +46,7 @@ function KeyApiMap(command, presenter, daoHandler) {
     ['E', presenter.event.createEntity],
     ['F', presenter.event.toggleInstaceRelation],
     ['I', daoHandler.showAccess],
+    ['J', buttonController.modeAccordingToButton['add-subspan'].toggle],
     ['M', presenter.event.toggleInstaceRelation],
     ['Q', presenter.event.showPallet],
     ['R', presenter.event.replicate],

@@ -17,11 +17,7 @@ export default function spanMoveCommand(editor, annotationData, selectionModel, 
 
   if (!d.span.get(newSpanId)) {
     subCommands.push(spanRemoveCommand(editor, annotationData, selectionModel, spanId))
-    subCommands.push(spanCreateCommand({
-      firstBegin: newSpan.firstBegin,
-      lastEnd: newSpan.lastEnd,
-      ranges: [{ begin: newSpan.firstBegin, end: newSpan.lastEnd }]
-    }))
+    subCommands.push(spanCreateCommand(newSpan))
     d.span.get(spanId).getTypes().forEach(function(type) {
       type.entities.forEach(function(id) {
         subCommands.push(entityCreateCommand({

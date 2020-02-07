@@ -14,6 +14,8 @@ export default function(annotationData, selectionModel, selection, id) {
     // 1. The anchorNode out of the span and in the parent of the span.
     // 2. The foucusNode is in the span.
     return selection.focusNode.parentNode.id
+  } else if (isForcusTwoDownUnderAnchor(selection)) {
+    return selection.focusNode.parentNode.parentNode.id
   } else if (id) {
     return id
   }
@@ -21,4 +23,8 @@ export default function(annotationData, selectionModel, selection, id) {
 
 function isForcusOneDownUnderAnchor(selection) {
   return selection.anchorNode.parentNode === selection.focusNode.parentNode.parentNode
+}
+
+function isForcusTwoDownUnderAnchor(selection) {
+  return selection.anchorNode.parentNode === selection.focusNode.parentNode.parentNode.parentNode
 }

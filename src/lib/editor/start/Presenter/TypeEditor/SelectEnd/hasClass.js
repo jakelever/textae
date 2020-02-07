@@ -5,7 +5,7 @@ export {
 }
 
 function hasSpan($node) {
-  return $node.hasClass('textae-editor__span')
+  return $node.hasClass('textae-editor__span') || $node.hasClass('textae-editor__subspan')
 }
 
 function hasParagraphs($node) {

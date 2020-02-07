@@ -6,6 +6,7 @@ import deferAlert from '../../deferAlert'
 import idFactory from '../../../../../../idFactory'
 import moveSpan from './../moveSpan'
 import * as selectPosition from '../../selectPosition'
+import _ from 'underscore'
 
 export default function(editor, annotationData, command, spanAdjuster, spanId, selection, spanConfig) {
   const newSpan = getNewSpan(annotationData, spanAdjuster, spanId, selection, spanConfig)
@@ -22,7 +23,7 @@ export default function(editor, annotationData, command, spanAdjuster, spanId, s
   const newSpanId = idFactory.makeSpanId(editor, newSpan),
     sameSpan = annotationData.span.get(newSpanId)
 
-  if (newSpan.begin < newSpan.end && !sameSpan) {
+  if (newSpan.firstBegin < newSpan.lastEnd && !sameSpan) {
     command.invoke(moveSpan(editor, command, spanId, newSpan), ['annotation'])
   } else {
     command.invoke(removeSpan(command, spanId), ['annotation'])
@@ -45,28 +46,56 @@ function removeSpan(command, spanId) {
 
 function getNewShortSpan(annotationData, spanAdjuster, spanId, anchorPosition, focusPosition, spanConfig) {
   const span = annotationData.span.get(spanId)
+  var newRanges = []
 
   if (anchorPosition < focusPosition) {
     // shorten the left boundary
-    if (span.end === focusPosition) return {
-      begin: span.end,
-      end: span.end
-    }
 
-    return {
-      begin: spanAdjuster.forwardFromBegin(annotationData.sourceDoc, focusPosition, spanConfig),
-      end: span.end
+    if (span.lastEnd === focusPosition) {
+      // Is this ever used?
+      newRanges = { begin: span.lastEnd, end: span.lastEnd }
+    } else {
+
+      var adjustedFocusPosition = spanAdjuster.forwardFromBegin(annotationData.sourceDoc, focusPosition, spanConfig)
+      _.map(span.ranges, function (r) {
+        if (adjustedFocusPosition < r.begin)
+          newRanges.push(r)
+        else if (adjustedFocusPosition < r.end)
+          newRanges.push({
+            begin: adjustedFocusPosition,
+            end: r.end
+          })
+      })
     }
   } else {
-    // shorten the right boundary
-    if (span.begin === focusPosition) return {
-      begin: span.begin,
-      end: span.begin
-    }
+    
+    if (span.firstBegin === focusPosition) {
+      // shorten the right boundary
+      newRanges = { begin: span.firstBegin, end: span.firstBegin }
+    } else {
+      var adjustedFocusPosition = spanAdjuster.backFromEnd(annotationData.sourceDoc, focusPosition - 1, spanConfig) + 1
 
-    return {
-      begin: span.begin,
-      end: spanAdjuster.backFromEnd(annotationData.sourceDoc, focusPosition - 1, spanConfig) + 1
+      _.map(span.ranges, function (r) {
+        if (r.end < adjustedFocusPosition)
+          newRanges.push(r)
+        else if (r.begin < adjustedFocusPosition)
+          newRanges.push({
+            begin: r.begin,
+            end: adjustedFocusPosition
+          })
+      })
+
     }
   }
+
+  newRanges = _.filter(newRanges, r => (r.end > r.begin))
+  var newSpan = { ranges: newRanges }
+  if (newRanges.length > 0) {
+    newSpan.firstBegin = Math.min.apply(null, _.map(newSpan.ranges, s => s.begin))
+    newSpan.lastEnd = Math.max.apply(null, _.map(newSpan.ranges, s => s.end))
+  } else {
+    newSpan.firstBegin = -1
+    newSpan.lastEnd = -1
+  }
+  return newSpan
 }

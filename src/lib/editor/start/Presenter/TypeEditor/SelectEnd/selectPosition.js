@@ -29,7 +29,7 @@ function getBeginEnd(annotationData, selection) {
 }
 
 function getPosition(paragraph, span, node) {
-  return getParentModel(paragraph, span, node).begin + getOffsetFromParent(node)
+  return getParentModelBegin(paragraph, span, node) + getOffsetFromParent(node)
 }
 
 function getOffsetFromParent(node) {
@@ -47,15 +47,23 @@ function getOffsetFromParent(node) {
   return offset
 }
 
-function getParentModel(paragraph, span, node) {
+function getParentModelBegin(paragraph, span, node) {
   const parent = node.parentElement
 
   if (parent.classList.contains("textae-editor__body__text-box__paragraph")) {
-    return paragraph.get(parent.id)
+    return paragraph.get(parent.id).begin
   }
 
   if (parent.classList.contains("textae-editor__span")) {
-    return span.get(parent.id)
+    var span_id = parent.id
+    return span.get(span_id).firstBegin
+  }
+
+  if (parent.classList.contains("textae-editor__subspan")) {
+    var span_id = parent.id.split('_').slice(0, 4).join('_')
+    var split = parent.id.split('_')
+    var subspan_index = parseInt(split[split.length-1].replace('s',''))
+    return span.get(span_id).ranges[subspan_index].begin
   }
 
   throw new Error('Can not get position of a node : ' + node + ' ' + node.data)

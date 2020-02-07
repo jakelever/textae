@@ -29,11 +29,13 @@ export default function(editor, annotationData) {
         var span_id = subspan_id.split('_').slice(0, 4).join('_')
         var span = annotationData.span.get(span_id)
 
-        _.map(span.ranges, function (r, i) {
-          let el = getSpanDom(span_id + '_s' + i)
-          if (el)
-            modifyStyle(el, 'remove')
-        })
+        if (span) {
+          _.map(span.ranges, function (r, i) {
+            let el = getSpanDom(span_id + '_s' + i)
+            if (el)
+              modifyStyle(el, 'remove')
+          })
+        }
       }
     },
     entity: {

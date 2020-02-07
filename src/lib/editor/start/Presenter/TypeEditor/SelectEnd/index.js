@@ -49,6 +49,8 @@ function selectEndOnText(spanEditor, annotationData, data) {
       spanEditor.create(data)
     } else if (data.selection.anchorNode.parentNode.classList.contains('textae-editor__span')) {
       spanEditor.expand(data)
+    } else if (data.selection.anchorNode.parentNode.classList.contains('textae-editor__subspan')) {
+      spanEditor.expand(data)
     }
   }
 

@@ -31,6 +31,8 @@ function getExpandTargetSpan(annotationData, selectionModel, selection) {
     // 1. The anchorNode is in the span.
     // 2. The foucusNode is out of the span and in the parent of the span.
     return selection.anchorNode.parentNode.id
+  } else if (isAnchorTwoDownUnderForcus(selection)) {
+    return selection.anchorNode.parentNode.parentNode.id
   }
 }
 
@@ -53,6 +55,10 @@ function isAnchorOneDownUnderForcus(selection) {
   return selection.anchorNode.parentNode.parentNode === selection.focusNode.parentNode
 }
 
+function isAnchorTwoDownUnderForcus(selection) {
+  return selection.anchorNode.parentNode.parentNode.parentNode === selection.focusNode.parentNode
+}
+
 function getNewSpan(annotationData, spanAdjuster, spanId, selection, spanConfig) {
   const anchorPosition = selectPosition.getAnchorPosition(annotationData, selection),
     focusPosition = selectPosition.getFocusPosition(annotationData, selection)
@@ -62,18 +68,27 @@ function getNewSpan(annotationData, spanAdjuster, spanId, selection, spanConfig)
 
 function getNewExpandSpan(annotationData, spanAdjuster, spanId, anchorPosition, focusPosition, spanConfig) {
   var span = annotationData.span.get(spanId)
+  var newRanges = []
 
   if (anchorPosition > focusPosition) {
     // expand to the left
-    return {
+    /*return {
       begin: spanAdjuster.backFromBegin(annotationData.sourceDoc, focusPosition, spanConfig),
       end: span.end
-    }
+    }*/
+    var newBegin = spanAdjuster.backFromBegin(annotationData.sourceDoc, focusPosition, spanConfig)
+    span.ranges[0].begin = newBegin
+    span.firstBegin = newBegin
   } else {
     // expand to the right
-    return {
+    /*return {
       begin: span.begin,
       end: spanAdjuster.forwardFromEnd(annotationData.sourceDoc, focusPosition - 1, spanConfig) + 1
-    }
+    }*/
+    var newEnd = spanAdjuster.forwardFromEnd(annotationData.sourceDoc, focusPosition - 1, spanConfig) + 1
+    span.ranges[span.ranges.length - 1].end = newEnd
+    span.lastEnd = newEnd
   }
+
+  return span
 }

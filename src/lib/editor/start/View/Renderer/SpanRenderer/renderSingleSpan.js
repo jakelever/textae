@@ -52,65 +52,61 @@ function createRange(baseNode, begin, end) {
   var endNode, offsetInsideEndNode
   [endNode, offsetInsideEndNode] = getNodeFromOffset(baseNode, end)
 
-  // Check if the start is at the beginning of its node
-  var beforeStart = (offsetInsideStartNode == 0)
+  // Check if the start is at the end of its node
+  var afterStart = (offsetInsideStartNode == startNode.length)
   // Check if the end is at the end of its node
   var afterEnd = (offsetInsideEndNode == endNode.length)
 
-  // Get the set of ancestors (parents, parents' parents, etc) up the DOM tree
-  // for the two nodes (excluding themselvess)
-  var startAncestors = getAncestors(startNode).slice(1)
-  var endAncestors = getAncestors(endNode).slice(1)
+  // We need to find all possible locations that the start offset can be at.
+  // If it's at the end of a text node, it could also be at the end of other nodes
+  // or the beginning of others
+  var startOptions = [[startNode, offsetInsideStartNode]]
+  if (afterStart) {
+    var startExtension = extendRight(startNode)
+    startOptions.push(...startExtension)
+  }
 
-  // Find the first common ancestor for the two DOM nodes
-  var commonAncestor = _.intersection(startAncestors,endAncestors)[0]
+  // And do the same for the locations for the end offset
+  var endOptions = [[endNode, offsetInsideEndNode]]
+  if (afterEnd) {
+    var endExtension = extendRight(endNode)
+    endOptions.push(...endExtension)
+  }
 
-  // Get the corresponding children of the common ancestor that lead to
-  // the startNode and endNode
-  var commonAncestor_startChild = startAncestors[startAncestors.indexOf(commonAncestor) - 1]
-  var commonAncestor_endChild = endAncestors[endAncestors.indexOf(commonAncestor) - 1]
+  // Now we check all pairs of offset locations to find ones that are valid (e.g. at the
+  // same level in the DOM tree)
+  var validPairs = []
+  for (var i = 0; i < startOptions.length; i++) {
+    for (var j = 0; j < endOptions.length; j++) {
+      if (startOptions[i][0].parentNode == endOptions[j][0].parentNode) {
+        validPairs.push([startOptions[i][0], startOptions[i][1], endOptions[j][0], endOptions[j][1]])
+      }
+    }
+  }
 
-  // If either are null, replace with the start/endNode
-  if (!commonAncestor_startChild)
-    commonAncestor_startChild = startNode
-  if (!commonAncestor_endChild)
-    commonAncestor_endChild = endNode
+  if (validPairs.length == 0) {
+    throw new Error("Could not find a valid way to render a span. Cannot deal with annotation span that overlaps with another")
+  }
 
-  // Let's start creating the range, but with four possible cases
+  // Now we pick the first valid one
+  var adjStartNode, adjStartOffset, adjEndNode, adjEndOffset
+  [adjStartNode, adjStartOffset, adjEndNode, adjEndOffset] = validPairs[0]
+
+  // Let's start creating the range
   let range = document.createRange()
-  
-  if (beforeStart & afterEnd) {
-    // Case 1: We're starting before the start node and after the end node
-    range.setStartBefore(commonAncestor_startChild)
-    range.setEndAfter(commonAncestor_endChild)
-  } else if (beforeStart) {
-    // Case 2: Starting before the start node, but cutting into the end node
-    range.setStartBefore(commonAncestor_startChild)
-    if (endNode.parentNode != commonAncestor) {
-      // In order to cut into a node, the start and end nodes must be on the same level in the DOM
-      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
-    }
-    range.setEnd(endNode, offsetInsideEndNode)
-  } else if (afterEnd) {
-    // Case 3: Cutting in the start node, and ending after the end node
-    if (startNode.parentNode != commonAncestor) {
-      // In order to cut into a node, the start and end nodes must be on the same level in the DOM
-      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
-    }
-    range.setStart(startNode, offsetInsideStartNode)
-    range.setEndAfter(commonAncestor_endChild)
+
+  // Set the start offset location depending on whether it's at the end of the given node
+  if (adjStartOffset == adjStartNode.textContent.length) {
+    range.setStartAfter(adjStartNode)
   } else {
-    // Case 4: Cutting in the start node and end node
-    if (startNode.parentNode != commonAncestor) {
-      // In order to cut into a node, the start and end nodes must be on the same level in the DOM
-      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
-    }
-    if (endNode.parentNode != commonAncestor) {
-      // In order to cut into a node, the start and end nodes must be on the same level in the DOM
-      throw new Error("Cannot deal with annotation span that overlaps with another (or there is another error here that I didn't think of)")
-    }
-    range.setStart(startNode, offsetInsideStartNode)
-    range.setEnd(endNode, offsetInsideEndNode)
+    range.setStart(adjStartNode, adjStartOffset)
+  }
+
+  // Set the end offset location depending on whether it's at the end of the given node
+  if (adjEndOffset == adjEndNode.textContent.length) {
+    range.setEndAfter(adjEndNode)
+  } else {
+    range.setEnd(adjEndNode, adjEndOffset)
   }
 
   return range
@@ -151,7 +147,6 @@ function getNodeFromOffset(curNode, offset) {
         throw new Error('Unable to find text node that is an offset from a given node')
       }
     }
-
   }
 
   // We pass back the node, with the remaining offset into this node.
@@ -169,21 +164,60 @@ function getNextSiblingAcrossTree(node) {
   return node.nextSibling
 }
 
+// For a text offset at the end of a text node, we need to find all
+// possible other locations that represent the same offset. These could be
+// the end of nodes further up the tree, or the beginning of other nodes
+// across the tree (assuming there is no text in between)
+function extendRight(node) {
+  var extension = []
 
-// From: https://stackoverflow.com/questions/2453742/whats-the-best-way-to-find-the-first-common-parent-of-two-dom-nodes-in-javascri/2453832#2453832
-// Get all the ancestors for a DOM node up to document
-// (e.g. self, parent, parents' parent)
-function getAncestors(node) {
-  if (node != document) return [node].concat(getAncestors(node.parentNode));
-  else return [node];
+  // We first move up the tree and gather any nodes that "contain" the offset
+  // as the end of the node
+  var seniorParent = node
+  while (isFinalNonEmptyChild(seniorParent)) {
+    seniorParent = seniorParent.parentNode
+    extension.push( [seniorParent,seniorParent.textContent.length] )
+  }
+
+  // Next we'll move to the next sibling of the final parent we moved
+  // up the tree to and start going back down the tree, collecting
+  // all nodes that represent the offset at the beginning of the node
+  var uncle = getNextNonEmptySibling(seniorParent)
+
+  var child = uncle
+  while (child) {
+    extension.push( [child,0] )
+    child = getFirstNonEmptyChild(child)
+  }
+
+  return extension
 }
 
-// Some code to define indexOf for arrays if it's missing
-if (Array.prototype.indexOf === undefined) {
-  Array.prototype.indexOf = function (element) {
-    for (var i = 0, l = this.length; i < l; i++) {
-      if (this[i] == element) return i;
+
+function getNextNonEmptySibling(node) {
+  var sibling = node.nextSibling
+  while (sibling) {
+    if (sibling.textContent.length > 0)
+      return sibling
+    sibling = node.nextSibling
+  }
+  return sibling
+}
+
+function getFirstNonEmptyChild(node) {
+  if (node.firstChild) {
+    if (node.firstChild.textContent.length > 0) {
+        return node.firstChild
+    } else {
+      return getNextNonEmptySibling(node.firstChild)
     }
-    return -1;
-  };
+  } else {
+    return null
+  }
 }
+
+function isFinalNonEmptyChild(node) {
+  var sibling = getNextNonEmptySibling(node)
+  return sibling == null
+}
+

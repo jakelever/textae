@@ -1,6 +1,7 @@
 import * as selectionValidator from './selectionValidator'
 import SpanEditor from './SpanEditor'
 import * as selectPosition from './selectPosition'
+import _ from 'underscore'
 
 export default function(editor, annotationData, selectionModel, command, modeAccordingToButton, typeContainer) {
   // Initiated by events.
@@ -61,14 +62,14 @@ function selectEndOnSpan(spanEditor, annotationData, data) {
   const isValid = selectionValidator.validateOnSpan(annotationData, data.spanConfig, data.selection)
 
   if (isValid) {
-    if (data.selection.anchorNode === data.selection.focusNode) {
-      const ap = selectPosition.getAnchorPosition(annotationData, data.selection),
+    if (data.selection.anchorNode === data.selection.focusNode || inSameSpan(data.selection.anchorNode, data.selection.focusNode)) {
+      /*const ap = selectPosition.getAnchorPosition(annotationData, data.selection),
         span = annotationData.span.get(data.selection.anchorNode.parentElement.id)
       if (ap === span.begin || ap === span.end) {
         spanEditor.shrinkPullByTheEar(data, data.selection.anchorNode.parentElement.id)
-      } else {
+      } else {*/
         spanEditor.create(data)
-      }
+      //}
     } else if (data.selection.focusNode.parentElement.closest(`#${data.selection.anchorNode.parentElement.id}`)) {
       spanEditor.shrinkCrossTheEar(data)
     } else if (data.selection.anchorNode.parentElement.closest(`#${data.selection.focusNode.parentElement.id}`)) {
@@ -86,4 +87,32 @@ function clearTextSelection() {
   } else if (window.getSelection().removeAllRanges) { // Firefox
     window.getSelection().removeAllRanges()
   }
+}
+
+function inSameSpan(nodeA, nodeB) {
+  var ancestorsA = getAncestors(nodeA)
+  var ancestorsB = getAncestors(nodeB)
+  ancestorsA = _.map(ancestorsA, node => (node.classList && node.classList.contains("textae-editor__span")))
+  ancestorsB = _.map(ancestorsB, node => (node.classList && node.classList.contains("textae-editor__span")))
+
+  var intersection = _.intersection(ancestorsA, ancestorsB)
+  return intersection.length > 0
+}
+
+// From: https://stackoverflow.com/questions/2453742/whats-the-best-way-to-find-the-first-common-parent-of-two-dom-nodes-in-javascri/2453832#2453832
+// Get all the ancestors for a DOM node up to document
+// (e.g. self, parent, parents' parent)
+function getAncestors(node) {
+  if (node != document) return [node].concat(getAncestors(node.parentNode));
+  else return [node];
+}
+
+// Some code to define indexOf for arrays if it's missing
+if (Array.prototype.indexOf === undefined) {
+  Array.prototype.indexOf = function (element) {
+    for (var i = 0, l = this.length; i < l; i++) {
+      if (this[i] == element) return i;
+    }
+    return -1;
+  };
 }

@@ -53,22 +53,30 @@ function createRange(baseNode, begin, end) {
   [endNode, offsetInsideEndNode] = getNodeFromOffset(baseNode, end)
 
   // Check if the start is at the end of its node
+  var beforeStart = (offsetInsideStartNode == 0)
   var afterStart = (offsetInsideStartNode == startNode.length)
   // Check if the end is at the end of its node
+  var beforeEnd = (offsetInsideEndNode == 0)
   var afterEnd = (offsetInsideEndNode == endNode.length)
 
   // We need to find all possible locations that the start offset can be at.
   // If it's at the end of a text node, it could also be at the end of other nodes
   // or the beginning of others
   var startOptions = [[startNode, offsetInsideStartNode]]
-  if (afterStart) {
+  if (beforeStart) {
+    var startExtension = extendLeft(startNode)
+    startOptions.push(...startExtension)
+  } else if (afterStart) {
     var startExtension = extendRight(startNode)
     startOptions.push(...startExtension)
   }
 
   // And do the same for the locations for the end offset
   var endOptions = [[endNode, offsetInsideEndNode]]
-  if (afterEnd) {
+  if (beforeEnd) {
+    var endExtension = extendLeft(endNode)
+    endOptions.push(...endExtension)
+  } else if (afterEnd) {
     var endExtension = extendRight(endNode)
     endOptions.push(...endExtension)
   }
@@ -96,14 +104,18 @@ function createRange(baseNode, begin, end) {
   let range = document.createRange()
 
   // Set the start offset location depending on whether it's at the end of the given node
-  if (adjStartOffset == adjStartNode.textContent.length) {
+  if (adjStartOffset == 0) {
+    range.setStartBefore(adjStartNode)
+  } else if (adjStartOffset == adjStartNode.textContent.length) {
     range.setStartAfter(adjStartNode)
   } else {
     range.setStart(adjStartNode, adjStartOffset)
   }
 
   // Set the end offset location depending on whether it's at the end of the given node
-  if (adjEndOffset == adjEndNode.textContent.length) {
+  if (adjEndOffset == 0) {
+    range.setEndBefore(adjEndNode)
+  } else if (adjEndOffset == adjEndNode.textContent.length) {
     range.setEndAfter(adjEndNode)
   } else {
     range.setEnd(adjEndNode, adjEndOffset)
@@ -193,6 +205,31 @@ function extendRight(node) {
   return extension
 }
 
+function extendLeft(node) {
+  var extension = []
+
+  // We first move up the tree and gather any nodes that "contain" the offset
+  // as the beginning of the node
+  var seniorParent = node
+  while (isFirstNonEmptyChild(seniorParent)) {
+    seniorParent = seniorParent.parentNode
+    extension.push([seniorParent, 0])
+  }
+
+  // Next we'll move to the previous sibling of the final parent we moved
+  // up the tree to and start going back down the tree, collecting
+  // all nodes that represent the offset at the end of the node
+  var uncle = getPrevNonEmptySibling(seniorParent)
+
+  var child = uncle
+  while (child) {
+    extension.push([child, 0])
+    child = getLastNonEmptyChild(child)
+  }
+
+  return extension
+}
+
 
 function getNextNonEmptySibling(node) {
   var sibling = node.nextSibling
@@ -218,6 +255,35 @@ function getFirstNonEmptyChild(node) {
 
 function isFinalNonEmptyChild(node) {
   var sibling = getNextNonEmptySibling(node)
+  return sibling == null
+}
+
+
+
+function getPrevNonEmptySibling(node) {
+  var sibling = node.previousSibling
+  while (sibling) {
+    if (sibling.textContent.length > 0)
+      return sibling
+    sibling = node.previousSibling
+  }
+  return sibling
+}
+
+function getLastNonEmptyChild(node) {
+  if (node.lastChild) {
+    if (node.lastChild.textContent.length > 0) {
+      return node.lastChild
+    } else {
+      return getPrevNonEmptySibling(node.lastChild)
+    }
+  } else {
+    return null
+  }
+}
+
+function isFirstNonEmptyChild(node) {
+  var sibling = getPrevNonEmptySibling(node)
   return sibling == null
 }
 

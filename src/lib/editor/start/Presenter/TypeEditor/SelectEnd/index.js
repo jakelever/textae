@@ -92,8 +92,8 @@ function clearTextSelection() {
 function inSameSpan(nodeA, nodeB) {
   var ancestorsA = getAncestors(nodeA)
   var ancestorsB = getAncestors(nodeB)
-  ancestorsA = _.map(ancestorsA, node => (node.classList && node.classList.contains("textae-editor__span")))
-  ancestorsB = _.map(ancestorsB, node => (node.classList && node.classList.contains("textae-editor__span")))
+  ancestorsA = _.filter(ancestorsA, node => (node.classList && node.classList.contains("textae-editor__span")))
+  ancestorsB = _.filter(ancestorsB, node => (node.classList && node.classList.contains("textae-editor__span")))
 
   var intersection = _.intersection(ancestorsA, ancestorsB)
   return intersection.length > 0

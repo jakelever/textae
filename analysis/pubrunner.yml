@@ -1,0 +1,15 @@
+name: TextAE_Analysis
+version: 0.1
+url: https://github.com/jakelever/textae
+resources:
+   full:
+      - PUBMED:
+         format: bioc
+      - PMCOA:
+         format: bioc
+      - PMCAMC:
+         format: bioc
+run:
+#   - python align.py --inBioc {IN:PUBMED/%} --annotations <(zcat data/bioconcepts2pubtatorcentral.gz) --outBioc {OUT:aligned/%.xml}
+  - python findNonContigious.py --biocxml {IN:aligned/%.xml} --termsAndTypes multiWordEntities.withCountsAndTypes.min5.txt --outFile {OUT:noncontig/%.tsv}
+

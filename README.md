@@ -9,3 +9,15 @@ To build and use the code, we direct you to the documentation in the [original r
 
 ![Example of some non-contiguous entities annoted with the new functionality](fig2.jpg)
 **Fig:** Lung and cervical cancer terms are non-contiguous entities but can be annotated with the new Add subspan functionality from the toolbar
+
+Annotation
+----------
+
+The animation below shows two non-contiguous entities being annotated and then linked by relations. The steps are described below.
+
+- Select the first one of an entity
+- Enable the subspan mode on the toolbar (the green cross)
+- Select the next span to be added to the entity
+- Disable the subspan mode on the toolbar.
+
+![Animation of annotation](annotation-animation.gif)

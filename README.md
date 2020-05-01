@@ -20,4 +20,4 @@ The animation below shows two non-contiguous entities being annotated and then l
 - Select the next span to be added to the entity
 - Disable the subspan mode on the toolbar.
 
-![Animation of annotation](annotation-animation.gif)
+![Animation of annotation](annotation-animation-full.gif)
